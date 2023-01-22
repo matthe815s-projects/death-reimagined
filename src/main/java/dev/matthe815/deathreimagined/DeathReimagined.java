@@ -15,7 +15,9 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
@@ -92,18 +94,26 @@ public class DeathReimagined {
     }
 
     @SubscribeEvent
+    public void onRightClick(PlayerInteractEvent.EntityInteract event)
+    {
+        // Only if you right click another player
+        if (!(event.getEntity() instanceof PlayerEntity)) return;
+        if (PlayerData.GetData((PlayerEntity) event.getEntity()).IsDying()) return;
+    }
+
+    @SubscribeEvent
     public void onPlayerDeath(LivingDeathEvent event)
     {
         if (event.getEntity().world.isRemote) return; // This should only run on servers
         if (!(event.getEntity() instanceof PlayerEntity)) return; // Only react to player deaths
 
         PlayerEntity player = (PlayerEntity)event.getEntity();
-        PlayerData.GetData(player).OnDeath();
 
         event.setCanceled(true); // Stop the actual death
         player.setHealth(0.5f); // It won't stop if this isn't set.
 
-        System.out.println("Player is dying");
+        if (PlayerData.GetData(player).IsDying()) return; // We don't want to reset the number while dying.
+        PlayerData.GetData(player).OnDeath();
     }
 
     // You can use EventBusSubscriber to automatically subscribe events on the contained class (this is subscribing to the MOD

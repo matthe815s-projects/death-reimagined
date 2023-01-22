@@ -44,6 +44,22 @@ public class PlayerData {
         playerDatas.remove(player.getName().getString());
     }
 
+    /**
+     * Set the dying ticks to a specified amount
+     * @param ticks
+     */
+    public void SetTicks (int ticks) {
+        this.deathTimer = ticks;
+    }
+
+    /**
+     * Get if the player is currently dying.
+     * @return
+     */
+    public boolean IsDying () {
+        return deathTimer > 0;
+    }
+
     public void OnRespawn () {
         deathCount = 0;
         deathTimer = 0;
@@ -64,7 +80,8 @@ public class PlayerData {
 
     public void OnDeath () {
         deathCount++;
-        deathTimer = 1200;
+        deathTimer =
+                player.getServer().getPlayerList().getPlayers().size() > 1 ? (2400 / deathCount) : 255;
 
         DeathReimagined.network.sendTo(
                 new PlayerDyingStatusPacket(true, deathTimer), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);

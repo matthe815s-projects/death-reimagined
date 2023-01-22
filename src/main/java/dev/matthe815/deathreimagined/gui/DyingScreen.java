@@ -15,12 +15,20 @@ public class DyingScreen extends Screen {
     }
 
     @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+
+    @Override
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(matrixStack);
 
         drawCenteredString(matrixStack, this.font, this.title.getString(), this.width / 2, 8, 0XFFFFFF);
         drawCenteredString(
-                matrixStack, this.font, String.format("Forced respawn after %s ticks.", DeathReimagined.dyingTick), this.width / 2, 20, 0xFFFFFF);
+                matrixStack, this.font, String.format("Forced respawn after %s seconds.", DeathReimagined.dyingTick / 40), this.width / 2, 20, 0xFFFFFF);
+
+        // Don't allow respawning once you black out.
+        if (DeathReimagined.dyingTick <= 255) this.buttons.clear();
 
         super.render(matrixStack, mouseX, mouseY, partialTicks);
     }
@@ -40,6 +48,7 @@ public class DyingScreen extends Screen {
 
         this.addButton(new Button((this.width - 200) / 2, (this.height - 20) / 2, 200, 20, new StringTextComponent("Respawn"), button -> {
             DeathReimagined.network.sendToServer(new PlayerRespawnPacket());
+            DeathReimagined.dyingTick = 255;
         }));
     }
 

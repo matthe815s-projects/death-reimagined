@@ -35,7 +35,7 @@ public class PlayerRespawnPacket {
         public static void handle(final PlayerRespawnPacket pkt, Supplier<NetworkEvent.Context> ctx)
         {
             ServerPlayerEntity player = ctx.get().getSender();
-            PlayerData.GetData(player).OnRespawn();
+            PlayerData.GetData(player).SetTicks(255);
             ctx.get().setPacketHandled(true);
         }
     }
