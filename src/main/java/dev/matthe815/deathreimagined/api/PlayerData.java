@@ -2,6 +2,7 @@ package dev.matthe815.deathreimagined.api;
 
 import dev.matthe815.deathreimagined.DeathReimagined;
 import dev.matthe815.deathreimagined.networking.PlayerDyingStatusPacket;
+import net.minecraft.block.ChestBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.tileentity.ChestTileEntity;
@@ -47,21 +48,23 @@ public class PlayerData {
         deathCount = 0;
         deathTimer = 0;
 
-        player.world.setTileEntity(player.getPosition(), new ChestTileEntity());
-
-        DeathReimagined.network.sendTo(new PlayerDyingStatusPacket(false, 0), ctx.get().getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
+        DeathReimagined.network.sendTo(new PlayerDyingStatusPacket(false, 0), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
 
         BlockPos spawnLocation;
 
         if (player.getBedPosition().isPresent()) spawnLocation = player.getBedPosition().get();
         else spawnLocation = player.world.getServer().func_241755_D_().getSpawnPoint();
 
+        // Set your health and food to half of the max value
+        player.setHealth(player.getMaxHealth() / 2);
+        player.getFoodStats().setFoodLevel(10);
+
         player.setPositionAndUpdate(spawnLocation.getX(), spawnLocation.getY(), spawnLocation.getZ());
     }
 
     public void OnDeath () {
         deathCount++;
-        deathTimer = 270;
+        deathTimer = 1200;
 
         DeathReimagined.network.sendTo(
                 new PlayerDyingStatusPacket(true, deathTimer), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);

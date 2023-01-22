@@ -20,21 +20,25 @@ public class DyingScreen extends Screen {
 
         drawCenteredString(matrixStack, this.font, this.title.getString(), this.width / 2, 8, 0XFFFFFF);
         drawCenteredString(
-                matrixStack, this.font, String.format("Forced respawn after %s ticks.", 255 - DeathReimagined.dyingTick), this.width / 2, 16, 0xFFFFFF);
+                matrixStack, this.font, String.format("Forced respawn after %s ticks.", DeathReimagined.dyingTick), this.width / 2, 16, 0xFFFFFF);
 
         super.render(matrixStack, mouseX, mouseY, partialTicks);
     }
 
     @Override
     public void renderBackground(MatrixStack matrixStack, int vOffset) {
-        this.fillGradient(matrixStack, 0, 0, this.width, this.height, new Color(0, 0, 0, 255).getRGB(), new Color(0, 0, 0, DeathReimagined.dyingTick).getRGB());
+        // Render a fade in effect during the last 255 ticks
+        int alpha = 255 - DeathReimagined.dyingTick;
+        if (alpha < 0) alpha = 0;
+
+        this.fillGradient(matrixStack, 0, 0, this.width, this.height, new Color(0, 0, 0, alpha).getRGB(), new Color(0, 0, 0, alpha).getRGB());
     }
 
     @Override
     protected void init() {
         super.init();
 
-        this.addButton(new Button((this.width - 200) / 2, 200, 200, 20, new StringTextComponent("Respawn"), button -> {
+        this.addButton(new Button((this.width - 200) / 2, (this.height - 20) / 2, 200, 20, new StringTextComponent("Respawn"), button -> {
             DeathReimagined.network.sendToServer(new PlayerRespawnPacket());
         }));
     }

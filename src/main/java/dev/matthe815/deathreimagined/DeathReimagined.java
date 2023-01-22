@@ -51,7 +51,6 @@ public class DeathReimagined {
 
     public DeathReimagined() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
@@ -71,18 +70,6 @@ public class DeathReimagined {
         network.registerMessage(index++, PlayerRespawnPacket.class, PlayerRespawnPacket::encode, PlayerRespawnPacket::decode, PlayerRespawnPacket.Handler::handle);
     }
 
-    private void doClientStuff(final FMLClientSetupEvent event) {
-        // do something that can only be done on the client
-        LOGGER.info("Got game settings {}", event.getMinecraftSupplier().get().gameSettings);
-    }
-
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
-    @SubscribeEvent
-    public void onServerStarting(FMLServerStartingEvent event) {
-        // do something when the server starts
-        LOGGER.info("HELLO from server starting");
-    }
-
     @SubscribeEvent
     public void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
         PlayerData.AddData((ServerPlayerEntity) event.getPlayer());
@@ -96,7 +83,7 @@ public class DeathReimagined {
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.player.world.isRemote) {
-            if (isDying && dyingTick < 255) dyingTick++; // Simulate the server's environment on the client.
+            if (isDying && dyingTick > 0) dyingTick--; // Simulate the server's environment on the client.
             return;
         }
 
