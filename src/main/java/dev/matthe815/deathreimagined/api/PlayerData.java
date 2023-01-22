@@ -44,6 +44,10 @@ public class PlayerData {
         playerDatas.remove(player.getName().getString());
     }
 
+    public static PlayerData GetData(String target) {
+        return playerDatas.get(target);
+    }
+
     /**
      * Set the dying ticks to a specified amount
      * @param ticks
@@ -60,22 +64,24 @@ public class PlayerData {
         return deathTimer > 0;
     }
 
-    public void OnRespawn () {
+    public void OnRespawn (boolean atSpawn) {
         deathCount = 0;
         deathTimer = 0;
 
         DeathReimagined.network.sendTo(new PlayerDyingStatusPacket(false, 0), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
 
-        BlockPos spawnLocation;
+        if (atSpawn) {
+            BlockPos spawnLocation;
 
-        if (player.getBedPosition().isPresent()) spawnLocation = player.getBedPosition().get();
-        else spawnLocation = player.world.getServer().func_241755_D_().getSpawnPoint();
+            if (player.getBedPosition().isPresent()) spawnLocation = player.getBedPosition().get();
+            else spawnLocation = player.world.getServer().func_241755_D_().getSpawnPoint();
+
+            player.setPositionAndUpdate(spawnLocation.getX(), spawnLocation.getY(), spawnLocation.getZ());
+        }
 
         // Set your health and food to half of the max value
         player.setHealth(player.getMaxHealth() / 2);
         player.getFoodStats().setFoodLevel(10);
-
-        player.setPositionAndUpdate(spawnLocation.getX(), spawnLocation.getY(), spawnLocation.getZ());
     }
 
     public void OnDeath () {
@@ -95,7 +101,7 @@ public class PlayerData {
 
         if (deathTimer == 0)  {
             deathCount = 0;
-            OnRespawn();
+            OnRespawn(true);
         }
     }
 }

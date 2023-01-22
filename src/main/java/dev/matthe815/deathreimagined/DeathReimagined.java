@@ -3,6 +3,7 @@ package dev.matthe815.deathreimagined;
 import dev.matthe815.deathreimagined.api.PlayerData;
 import dev.matthe815.deathreimagined.gui.DyingUI;
 import dev.matthe815.deathreimagined.networking.PlayerDyingStatusPacket;
+import dev.matthe815.deathreimagined.networking.PlayerHelpRespawnPacket;
 import dev.matthe815.deathreimagined.networking.PlayerRespawnPacket;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -98,7 +99,9 @@ public class DeathReimagined {
     {
         // Only if you right click another player
         if (!(event.getEntity() instanceof PlayerEntity)) return;
-        if (PlayerData.GetData((PlayerEntity) event.getEntity()).IsDying()) return;
+
+        DeathReimagined.network.sendToServer(
+                new PlayerHelpRespawnPacket(((PlayerEntity)event.getEntity()).getName().getString()));
     }
 
     @SubscribeEvent
