@@ -1,13 +1,20 @@
 package dev.matthe815.deathreimagined;
 
 import dev.matthe815.deathreimagined.api.PlayerData;
+import dev.matthe815.deathreimagined.gui.DyingUI;
+import dev.matthe815.deathreimagined.networking.PlayerDyingStatusPacket;
+import dev.matthe815.deathreimagined.networking.PlayerRespawnPacket;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
@@ -18,32 +25,50 @@ import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.stream.Collectors;
 
 // The value here should match an entry in the META-INF/mods.toml file
-@Mod("deathreimagined")
+@Mod(DeathReimagined.MODID)
 public class DeathReimagined {
+    public static final String MODID = "deathreimagined";
 
-    // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger();
 
+    public static boolean isDying = false;
+    public static int dyingTick = 0;
+
+    public static final SimpleChannel network = NetworkRegistry.ChannelBuilder
+            .named(new ResourceLocation(MODID, "deathreimagined"))
+            .clientAcceptedVersions(s -> true)
+            .serverAcceptedVersions(s -> true)
+            .networkProtocolVersion(() -> "1")
+            .simpleChannel();
+
     public DeathReimagined() {
-        // Register the setup method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        // Register the doClientStuff method for modloading
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(new DyingUI());
     }
 
     private void setup(final FMLCommonSetupEvent event) {
         // some preinit code
         LOGGER.info("HELLO FROM PREINIT");
         LOGGER.info("DIRT BLOCK >> {}", Blocks.DIRT.getRegistryName());
+        setupNetworking();
+    }
+
+    private void setupNetworking() {
+        int index = 0;
+        network.registerMessage(index++, PlayerDyingStatusPacket.class, PlayerDyingStatusPacket::encode, PlayerDyingStatusPacket::decode, PlayerDyingStatusPacket.Handler::handle);
+        network.registerMessage(index++, PlayerRespawnPacket.class, PlayerRespawnPacket::encode, PlayerRespawnPacket::decode, PlayerRespawnPacket.Handler::handle);
     }
 
     private void doClientStuff(final FMLClientSetupEvent event) {
@@ -60,7 +85,7 @@ public class DeathReimagined {
 
     @SubscribeEvent
     public void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        PlayerData.AddData(event.getPlayer());
+        PlayerData.AddData((ServerPlayerEntity) event.getPlayer());
     }
 
     @SubscribeEvent
@@ -70,6 +95,11 @@ public class DeathReimagined {
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (event.player.world.isRemote) {
+            if (isDying && dyingTick < 255) dyingTick++; // Simulate the server's environment on the client.
+            return;
+        }
+
         PlayerData data = PlayerData.GetData(event.player);
         data.OnTick();
     }
@@ -77,12 +107,15 @@ public class DeathReimagined {
     @SubscribeEvent
     public void onPlayerDeath(LivingDeathEvent event)
     {
-        // Only react to player deaths
-        if (!(event.getEntity() instanceof PlayerEntity)) return;
-        PlayerEntity player = (PlayerEntity)event.getEntity();
+        if (event.getEntity().world.isRemote) return; // This should only run on servers
+        if (!(event.getEntity() instanceof PlayerEntity)) return; // Only react to player deaths
 
+        PlayerEntity player = (PlayerEntity)event.getEntity();
         PlayerData.GetData(player).OnDeath();
+
         event.setCanceled(true); // Stop the actual death
+        player.setHealth(0.5f); // It won't stop if this isn't set.
+
         System.out.println("Player is dying");
     }
 

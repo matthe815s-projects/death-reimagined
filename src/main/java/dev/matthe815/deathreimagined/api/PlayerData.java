@@ -1,6 +1,12 @@
 package dev.matthe815.deathreimagined.api;
 
+import dev.matthe815.deathreimagined.DeathReimagined;
+import dev.matthe815.deathreimagined.networking.PlayerDyingStatusPacket;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.tileentity.ChestTileEntity;
+import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.fml.network.NetworkDirection;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,7 +14,12 @@ import java.util.Map;
 public class PlayerData {
     public static final Map<String, PlayerData> playerDatas = new HashMap<>();
 
-    PlayerEntity player;
+    ServerPlayerEntity player;
+
+    public PlayerData(ServerPlayerEntity player)
+    {
+        this.player = player;
+    }
 
     /**
      * Keep track of the number of deaths before respawning, it can be used for time degradation.
@@ -24,17 +35,36 @@ public class PlayerData {
         return playerDatas.get(player.getName().getString());
     }
 
-    public static void AddData(PlayerEntity player) {
-        playerDatas.put(player.getName().getString(), new PlayerData());
+    public static void AddData(ServerPlayerEntity player) {
+        playerDatas.put(player.getName().getString(), new PlayerData(player));
     }
 
     public static void RemoveData(PlayerEntity player) {
         playerDatas.remove(player.getName().getString());
     }
 
+    public void OnRespawn () {
+        deathCount = 0;
+        deathTimer = 0;
+
+        player.world.setTileEntity(player.getPosition(), new ChestTileEntity());
+
+        DeathReimagined.network.sendTo(new PlayerDyingStatusPacket(false, 0), ctx.get().getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
+
+        BlockPos spawnLocation;
+
+        if (player.getBedPosition().isPresent()) spawnLocation = player.getBedPosition().get();
+        else spawnLocation = player.world.getServer().func_241755_D_().getSpawnPoint();
+
+        player.setPositionAndUpdate(spawnLocation.getX(), spawnLocation.getY(), spawnLocation.getZ());
+    }
+
     public void OnDeath () {
         deathCount++;
         deathTimer = 270;
+
+        DeathReimagined.network.sendTo(
+                new PlayerDyingStatusPacket(true, deathTimer), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
     }
 
     public void OnTick () {
@@ -44,8 +74,8 @@ public class PlayerData {
         deathTimer -= 1;
 
         if (deathTimer == 0)  {
-            player.respawnPlayer();
             deathCount = 0;
+            OnRespawn();
         }
     }
 }
