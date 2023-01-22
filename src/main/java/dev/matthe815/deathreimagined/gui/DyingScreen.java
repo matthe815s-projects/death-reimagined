@@ -20,7 +20,7 @@ public class DyingScreen extends Screen {
 
         drawCenteredString(matrixStack, this.font, this.title.getString(), this.width / 2, 8, 0XFFFFFF);
         drawCenteredString(
-                matrixStack, this.font, String.format("Forced respawn after %s ticks.", DeathReimagined.dyingTick), this.width / 2, 16, 0xFFFFFF);
+                matrixStack, this.font, String.format("Forced respawn after %s ticks.", DeathReimagined.dyingTick), this.width / 2, 20, 0xFFFFFF);
 
         super.render(matrixStack, mouseX, mouseY, partialTicks);
     }
