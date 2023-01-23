@@ -2,6 +2,7 @@ package dev.matthe815.deathreimagined;
 
 import dev.matthe815.deathreimagined.api.PlayerData;
 import dev.matthe815.deathreimagined.gui.DyingUI;
+import dev.matthe815.deathreimagined.items.ItemSyringe;
 import dev.matthe815.deathreimagined.networking.PlayerDyingStatusPacket;
 import dev.matthe815.deathreimagined.networking.PlayerHelpRespawnPacket;
 import dev.matthe815.deathreimagined.networking.PlayerRespawnPacket;
@@ -9,6 +10,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.common.MinecraftForge;
@@ -19,6 +21,7 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
@@ -45,6 +48,8 @@ public class DeathReimagined {
     public static boolean isDying = false;
     public static int dyingTick = 0;
 
+    public static final Item SYRINGE = new ItemSyringe();
+
     public static final SimpleChannel network = NetworkRegistry.ChannelBuilder
             .named(new ResourceLocation(MODID, "deathreimagined"))
             .clientAcceptedVersions(s -> true)
@@ -61,9 +66,6 @@ public class DeathReimagined {
     }
 
     private void setup(final FMLCommonSetupEvent event) {
-        // some preinit code
-        LOGGER.info("HELLO FROM PREINIT");
-        LOGGER.info("DIRT BLOCK >> {}", Blocks.DIRT.getRegistryName());
         setupNetworking();
     }
 
@@ -71,6 +73,7 @@ public class DeathReimagined {
         int index = 0;
         network.registerMessage(index++, PlayerDyingStatusPacket.class, PlayerDyingStatusPacket::encode, PlayerDyingStatusPacket::decode, PlayerDyingStatusPacket.Handler::handle);
         network.registerMessage(index++, PlayerRespawnPacket.class, PlayerRespawnPacket::encode, PlayerRespawnPacket::decode, PlayerRespawnPacket.Handler::handle);
+        network.registerMessage(index++, PlayerHelpRespawnPacket.class, PlayerHelpRespawnPacket::encode, PlayerHelpRespawnPacket::decode, PlayerHelpRespawnPacket.Handler::handle);
     }
 
     @SubscribeEvent
@@ -104,13 +107,19 @@ public class DeathReimagined {
                 new PlayerHelpRespawnPacket(((PlayerEntity)event.getEntity()).getName().getString()));
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
     public void onPlayerDeath(LivingDeathEvent event)
     {
         if (event.getEntity().world.isRemote) return; // This should only run on servers
         if (!(event.getEntity() instanceof PlayerEntity)) return; // Only react to player deaths
 
         PlayerEntity player = (PlayerEntity)event.getEntity();
+
+        // Perform normal death behaviour if respawning.
+        if (PlayerData.GetData(player).IsRespawning()) {
+            PlayerData.GetData(player).SetRespawning(false);
+            return;
+        }
 
         event.setCanceled(true); // Stop the actual death
         player.setHealth(0.5f); // It won't stop if this isn't set.
@@ -123,6 +132,10 @@ public class DeathReimagined {
     // Event bus for receiving Registry Events)
     @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
     public static class RegistryEvents {
+        @SubscribeEvent
+        public static void onItemRegister(final RegistryEvent.Register<Item> itemRegistryEvent) {
+            itemRegistryEvent.getRegistry().register(SYRINGE);
+        }
         @SubscribeEvent
         public static void onBlocksRegistry(final RegistryEvent.Register<Block> blockRegistryEvent) {
             // register a new block here

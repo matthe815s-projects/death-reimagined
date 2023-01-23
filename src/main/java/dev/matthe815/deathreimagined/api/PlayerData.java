@@ -2,10 +2,9 @@ package dev.matthe815.deathreimagined.api;
 
 import dev.matthe815.deathreimagined.DeathReimagined;
 import dev.matthe815.deathreimagined.networking.PlayerDyingStatusPacket;
-import net.minecraft.block.ChestBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.tileentity.ChestTileEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.network.NetworkDirection;
 
@@ -16,6 +15,8 @@ public class PlayerData {
     public static final Map<String, PlayerData> playerDatas = new HashMap<>();
 
     ServerPlayerEntity player;
+
+    boolean respawning = false;
 
     public PlayerData(ServerPlayerEntity player)
     {
@@ -68,26 +69,25 @@ public class PlayerData {
         deathCount = 0;
         deathTimer = 0;
 
-        DeathReimagined.network.sendTo(new PlayerDyingStatusPacket(false, 0), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
-
+        // Perform the normal death effects if there's no special revive conditions.
         if (atSpawn) {
-            BlockPos spawnLocation;
-
-            if (player.getBedPosition().isPresent()) spawnLocation = player.getBedPosition().get();
-            else spawnLocation = player.world.getServer().func_241755_D_().getSpawnPoint();
-
-            player.setPositionAndUpdate(spawnLocation.getX(), spawnLocation.getY(), spawnLocation.getZ());
+            respawning = true;
+            DeathReimagined.network.sendTo(new PlayerDyingStatusPacket(false, 0), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+            player.setHealth(0);
+        } else {
+            player.setHealth(player.getMaxHealth() / 2);
+            player.getFoodStats().setFoodLevel(10);
         }
-
-        // Set your health and food to half of the max value
-        player.setHealth(player.getMaxHealth() / 2);
-        player.getFoodStats().setFoodLevel(10);
     }
 
     public void OnDeath () {
         deathCount++;
-        deathTimer =
-                player.getServer().getPlayerList().getPlayers().size() > 1 ? (2400 / deathCount) : 255;
+
+        // Whether a long delay is applied to the death respawn, if you have a syringe or if another player is online.
+        boolean hasLongDelay = player.getServer().getPlayerList().getPlayers().size() > 1
+                || player.inventory.hasItemStack(new ItemStack(DeathReimagined.SYRINGE));
+
+        deathTimer = hasLongDelay ? (2400 / deathCount) : 255;
 
         DeathReimagined.network.sendTo(
                 new PlayerDyingStatusPacket(true, deathTimer), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
@@ -103,5 +103,13 @@ public class PlayerData {
             deathCount = 0;
             OnRespawn(true);
         }
+    }
+
+    public boolean IsRespawning() {
+        return respawning;
+    }
+
+    public void SetRespawning(boolean respawning) {
+        this.respawning = respawning;
     }
 }

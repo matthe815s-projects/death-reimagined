@@ -2,9 +2,12 @@ package dev.matthe815.deathreimagined.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import dev.matthe815.deathreimagined.DeathReimagined;
+import dev.matthe815.deathreimagined.enums.EnumRespawnType;
 import dev.matthe815.deathreimagined.networking.PlayerRespawnPacket;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.StringTextComponent;
 
 import java.awt.*;
@@ -49,6 +52,17 @@ public class DyingScreen extends Screen {
         this.addButton(new Button((this.width - 200) / 2, (this.height - 20) / 2, 200, 20, new StringTextComponent("Respawn"), button -> {
             DeathReimagined.network.sendToServer(new PlayerRespawnPacket());
             DeathReimagined.dyingTick = 255;
+        }));
+
+        // Add additional self revive options.
+        if (!Minecraft.getInstance().player.inventory.hasItemStack(new ItemStack(DeathReimagined.SYRINGE))) return;
+
+        int syringeCount = Minecraft.getInstance().player.inventory.getStackInSlot(
+                Minecraft.getInstance().player.inventory.getSlotFor(new ItemStack(DeathReimagined.SYRINGE))).getCount();
+
+        this.addButton(new Button((this.width - 200) / 2, ((this.height - 20) / 2) + 25, 200, 20,
+                new StringTextComponent(String.format("Self Revive (%s remaining)", syringeCount)), button -> {
+            DeathReimagined.network.sendToServer(new PlayerRespawnPacket(EnumRespawnType.SELF_REVIVE));
         }));
     }
 
