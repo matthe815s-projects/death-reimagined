@@ -17,7 +17,7 @@ public class DyingUI {
     public void onRenderGameOverlay (RenderGameOverlayEvent.Pre event)
     {
         // Show no UI when dying
-        if (!DeathReimagined.isDying) return;
+        if (!DeathReimagined.LOCAL_DATA.IsDying()) return;
         if (event.getType() == RenderGameOverlayEvent.ElementType.ALL) event.setCanceled(true);
     }
 }
