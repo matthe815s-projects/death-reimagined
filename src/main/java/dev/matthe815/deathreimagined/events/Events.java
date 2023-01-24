@@ -2,6 +2,7 @@ package dev.matthe815.deathreimagined.events;
 
 import dev.matthe815.deathreimagined.DeathReimagined;
 import dev.matthe815.deathreimagined.api.PlayerData;
+import dev.matthe815.deathreimagined.networking.NetworkManager;
 import dev.matthe815.deathreimagined.networking.packets.PlayerHelpRespawnPacket;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -25,13 +26,15 @@ public class Events {
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        // The client should simulate what's happening on the server
+        // This helps save bandwidth and is really all that is necessary.
         if (event.player.world.isRemote) {
-            if (DeathReimagined.isDying && DeathReimagined.dyingTick > 0) DeathReimagined.dyingTick--; // Simulate the server's environment on the client.
+            if (DeathReimagined.LOCAL_DATA.IsDying() && DeathReimagined.LOCAL_DATA.GetTicks() > 0)
+                DeathReimagined.LOCAL_DATA.SetTicks(DeathReimagined.LOCAL_DATA.GetTicks()-1); // Simulate the server's environment on the client.
             return;
         }
 
-        PlayerData data = PlayerData.GetData(event.player);
-        data.OnTick();
+        PlayerData.GetData(event.player).OnTick();
     }
 
     @SubscribeEvent
@@ -40,8 +43,8 @@ public class Events {
         // Only if you right click another player
         if (!(event.getEntity() instanceof PlayerEntity)) return;
 
-        DeathReimagined.network.sendToServer(
-                new PlayerHelpRespawnPacket(((PlayerEntity)event.getEntity()).getName().getString()));
+        NetworkManager.SendToServer(
+                new PlayerHelpRespawnPacket((event.getEntity()).getName().getString()));
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
