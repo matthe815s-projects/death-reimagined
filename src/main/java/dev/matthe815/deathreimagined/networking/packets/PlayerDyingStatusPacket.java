@@ -1,4 +1,4 @@
-package dev.matthe815.deathreimagined.networking;
+package dev.matthe815.deathreimagined.networking.packets;
 
 import dev.matthe815.deathreimagined.DeathReimagined;
 import dev.matthe815.deathreimagined.gui.DyingScreen;

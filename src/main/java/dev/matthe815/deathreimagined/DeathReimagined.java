@@ -1,23 +1,17 @@
 package dev.matthe815.deathreimagined;
 
-import dev.matthe815.deathreimagined.api.PlayerData;
+import dev.matthe815.deathreimagined.events.Events;
 import dev.matthe815.deathreimagined.gui.DyingUI;
 import dev.matthe815.deathreimagined.items.ItemSyringe;
-import dev.matthe815.deathreimagined.networking.PlayerDyingStatusPacket;
-import dev.matthe815.deathreimagined.networking.PlayerHelpRespawnPacket;
-import dev.matthe815.deathreimagined.networking.PlayerRespawnPacket;
+import dev.matthe815.deathreimagined.networking.NetworkManager;
+import dev.matthe815.deathreimagined.networking.packets.PlayerDyingStatusPacket;
+import dev.matthe815.deathreimagined.networking.packets.PlayerHelpRespawnPacket;
+import dev.matthe815.deathreimagined.networking.packets.PlayerRespawnPacket;
 import net.minecraft.block.Block;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -40,12 +34,10 @@ public class DeathReimagined {
 
     public static final Item SYRINGE = new ItemSyringe();
 
-    public static final SimpleChannel network = NetworkRegistry.ChannelBuilder
-            .named(new ResourceLocation(MODID, "deathreimagined"))
-            .clientAcceptedVersions(s -> true)
-            .serverAcceptedVersions(s -> true)
-            .networkProtocolVersion(() -> "1")
-            .simpleChannel();
+    /**
+     * Handles network related events for the mod.
+     */
+    public static final NetworkManager NETWORK = new NetworkManager();
 
     public DeathReimagined() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
@@ -53,6 +45,7 @@ public class DeathReimagined {
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(new Events());
     }
 
     private void setup(final FMLCommonSetupEvent event) {
@@ -60,66 +53,12 @@ public class DeathReimagined {
     }
 
     private void onClientSetup(final FMLClientSetupEvent event) {
-        MinecraftForge.EVENT_BUS.register(new DyingUI());
-        network.registerMessage(0, PlayerDyingStatusPacket.class, PlayerDyingStatusPacket::encode, PlayerDyingStatusPacket::decode, PlayerDyingStatusPacket.Handler::handle);
+        MinecraftForge.EVENT_BUS.register(new DyingUI());   // Register the UI for rendering
+        NetworkManager.RegisterClient();
     }
 
     private void setupNetworking() {
-        int index = 1;
-        network.registerMessage(index++, PlayerRespawnPacket.class, PlayerRespawnPacket::encode, PlayerRespawnPacket::decode, PlayerRespawnPacket.Handler::handle);
-        network.registerMessage(index++, PlayerHelpRespawnPacket.class, PlayerHelpRespawnPacket::encode, PlayerHelpRespawnPacket::decode, PlayerHelpRespawnPacket.Handler::handle);
-    }
-
-    @SubscribeEvent
-    public void onLogin(PlayerEvent.PlayerLoggedInEvent event) {
-        PlayerData.AddData((ServerPlayerEntity) event.getPlayer());
-    }
-
-    @SubscribeEvent
-    public void onLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        PlayerData.RemoveData(event.getPlayer());
-    }
-
-    @SubscribeEvent
-    public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.player.world.isRemote) {
-            if (isDying && dyingTick > 0) dyingTick--; // Simulate the server's environment on the client.
-            return;
-        }
-
-        PlayerData data = PlayerData.GetData(event.player);
-        data.OnTick();
-    }
-
-    @SubscribeEvent
-    public void onRightClick(PlayerInteractEvent.EntityInteract event)
-    {
-        // Only if you right click another player
-        if (!(event.getEntity() instanceof PlayerEntity)) return;
-
-        DeathReimagined.network.sendToServer(
-                new PlayerHelpRespawnPacket(((PlayerEntity)event.getEntity()).getName().getString()));
-    }
-
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onPlayerDeath(LivingDeathEvent event)
-    {
-        if (event.getEntity().world.isRemote) return; // This should only run on servers
-        if (!(event.getEntity() instanceof PlayerEntity)) return; // Only react to player deaths
-
-        PlayerEntity player = (PlayerEntity)event.getEntity();
-
-        // Perform normal death behaviour if respawning.
-        if (PlayerData.GetData(player).IsRespawning()) {
-            PlayerData.GetData(player).SetRespawning(false);
-            return;
-        }
-
-        event.setCanceled(true); // Stop the actual death
-        player.setHealth(0.5f); // It won't stop if this isn't set.
-
-        if (PlayerData.GetData(player).IsDying()) return; // We don't want to reset the number while dying.
-        PlayerData.GetData(player).OnDeath();
+        NetworkManager.RegisterCommon();
     }
 
     // You can use EventBusSubscriber to automatically subscribe events on the contained class (this is subscribing to the MOD

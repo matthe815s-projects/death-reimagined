@@ -1,20 +1,11 @@
-package dev.matthe815.deathreimagined.networking;
+package dev.matthe815.deathreimagined.networking.packets;
 
 import dev.matthe815.deathreimagined.DeathReimagined;
 import dev.matthe815.deathreimagined.api.PlayerData;
 import dev.matthe815.deathreimagined.enums.EnumRespawnType;
-import dev.matthe815.deathreimagined.gui.DyingScreen;
-import dev.matthe815.deathreimagined.items.ItemSyringe;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.tileentity.ChestTileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkEvent;
 
 import java.util.function.Supplier;
