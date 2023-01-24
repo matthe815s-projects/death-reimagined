@@ -33,17 +33,11 @@ public class PlayerDyingStatusPacket {
     {
         public static void handle(final PlayerDyingStatusPacket pkt, Supplier<NetworkEvent.Context> ctx)
         {
-            DeathReimagined.isDying = pkt.isDying;
-            DeathReimagined.dyingTick = pkt.dyingTick;
+            DeathReimagined.LOCAL_DATA.OnStatus(pkt.isDying, pkt.dyingTick);
 
-            // Set the effects of dying when you start dying
-            if (pkt.isDying) {
-                Minecraft.getInstance().displayGuiScreen(new DyingScreen());
-                Minecraft.getInstance().player.startSleeping(Minecraft.getInstance().player.getPosition());
-            } else { // Reset the effects
-                Minecraft.getInstance().currentScreen.closeScreen();
-                Minecraft.getInstance().player.stopSleepInBed(true, true);
-            }
+            // Set or reset the effects of dying when you start dying
+            if (pkt.isDying) DeathReimagined.LOCAL_DATA.OnDeath();
+            else DeathReimagined.LOCAL_DATA.OnRespawn();
 
             ctx.get().setPacketHandled(true);
         }

@@ -1,26 +1,25 @@
 package dev.matthe815.deathreimagined.api;
 
-import dev.matthe815.deathreimagined.DeathReimagined;
-import dev.matthe815.deathreimagined.networking.packets.PlayerDyingStatusPacket;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.fml.network.NetworkDirection;
+import dev.matthe815.deathreimagined.gui.DyingScreen;
+import net.minecraft.client.Minecraft;
 
 public class LocalPlayerData {
     /**
      * The number of ticks before respawning
      */
-    int deathTimer = 0;
+    int dyingTick = 0;
+    boolean isDying = false;
 
     /**
      * Get if the player is currently dying.
      * @return
      */
     public boolean IsDying () {
-        return deathTimer > 0;
+        return dyingTick > 0;
     }
 
     public int GetTicks () {
-        return deathTimer;
+        return dyingTick;
     }
 
     /**
@@ -31,14 +30,21 @@ public class LocalPlayerData {
      * @return
      */
     public void SetTicks (int ticks) {
-        deathTimer = ticks;
+        dyingTick = ticks;
     }
 
     public void OnRespawn () {
-        deathTimer = 0;
+        Minecraft.getInstance().currentScreen.closeScreen();
+        Minecraft.getInstance().player.stopSleepInBed(true, true);
     }
 
-    public void OnDeath (int ticks) {
-        deathTimer = ticks;
+    public void OnStatus(boolean isDying, int dyingTick) {
+        this.isDying = isDying;
+        this.dyingTick = dyingTick;
+    }
+
+    public void OnDeath() {
+        Minecraft.getInstance().displayGuiScreen(new DyingScreen());
+        Minecraft.getInstance().player.startSleeping(Minecraft.getInstance().player.getPosition());
     }
 }
