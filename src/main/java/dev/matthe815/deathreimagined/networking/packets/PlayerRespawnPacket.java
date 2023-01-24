@@ -51,6 +51,7 @@ public class PlayerRespawnPacket {
                     PlayerData.GetData(player).OnRespawn(false);
                     break;
             }
+
             ctx.get().setPacketHandled(true);
         }
     }
