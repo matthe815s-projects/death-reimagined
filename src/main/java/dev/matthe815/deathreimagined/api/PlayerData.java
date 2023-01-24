@@ -6,6 +6,7 @@ import dev.matthe815.deathreimagined.networking.packets.PlayerDyingStatusPacket;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fml.network.NetworkDirection;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -89,7 +90,8 @@ public class PlayerData {
 
         deathTimer = hasLongDelay ? (2400 / deathCount) : 255;
 
-        NetworkManager.SendToClient(new PlayerDyingStatusPacket(true, deathTimer), player);
+        NetworkManager.HANDLER.sendTo(new PlayerDyingStatusPacket(true, deathTimer), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+        //NetworkManager.SendToClient(new PlayerDyingStatusPacket(true, deathTimer), player);
     }
 
     public void OnTick () {

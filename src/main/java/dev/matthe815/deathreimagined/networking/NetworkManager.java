@@ -16,9 +16,9 @@ import net.minecraftforge.fml.server.ServerLifecycleHooks;
 public class NetworkManager {
     public static final String NETWORK_PROTOCOL = "1";
 
-    private static int REGISTER_INDEX = 0;
+    private static int REGISTER_INDEX = 1;
 
-    private static final SimpleChannel HANDLER = NetworkRegistry.ChannelBuilder
+    public static final SimpleChannel HANDLER = NetworkRegistry.ChannelBuilder
             .named(new ResourceLocation(DeathReimagined.MODID, "deathreimagined"))
             .clientAcceptedVersions(s -> true)
             .serverAcceptedVersions(s -> true)
@@ -27,7 +27,7 @@ public class NetworkManager {
 
     public static void RegisterClient ()
     {
-        HANDLER.registerMessage(REGISTER_INDEX, PlayerDyingStatusPacket.class, PlayerDyingStatusPacket::encode, PlayerDyingStatusPacket::decode, PlayerDyingStatusPacket.Handler::handle);
+        HANDLER.registerMessage(0, PlayerDyingStatusPacket.class, PlayerDyingStatusPacket::encode, PlayerDyingStatusPacket::decode, PlayerDyingStatusPacket.Handler::handle);
     }
 
     public static void RegisterCommon ()
@@ -41,7 +41,6 @@ public class NetworkManager {
      * This can only be performed on the client.
      * @param packet
      */
-    @OnlyIn(Dist.CLIENT)
     public static <MSG> void SendToServer (MSG packet)
     {
         HANDLER.sendToServer(packet);
@@ -53,7 +52,6 @@ public class NetworkManager {
      * @param packet
      * @param player
      */
-    @OnlyIn(Dist.DEDICATED_SERVER)
     public static <MSG> void SendToClient (MSG packet, ServerPlayerEntity player)
     {
         HANDLER.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_SERVER);
@@ -64,7 +62,6 @@ public class NetworkManager {
      * This can only be performed on the server.
      * @param packet
      */
-    @OnlyIn(Dist.DEDICATED_SERVER)
     public static <MSG> void Broadcast (MSG packet)
     {
         ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().forEach(serverPlayerEntity -> {

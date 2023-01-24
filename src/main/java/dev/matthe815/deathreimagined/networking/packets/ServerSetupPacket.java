@@ -29,18 +29,7 @@ public class ServerSetupPacket {
     {
         public static void handle(final ServerSetupPacket pkt, Supplier<NetworkEvent.Context> ctx)
         {
-            ServerPlayerEntity player = ctx.get().getSender();
-            player.world.setTileEntity(player.getPosition(), new ChestTileEntity());
 
-            DeathReimagined.network.sendTo(new PlayerDyingStatusPacket(false, 0), ctx.get().getNetworkManager(), NetworkDirection.PLAY_TO_CLIENT);
-
-            BlockPos spawnLocation;
-
-            if (player.getBedPosition().isPresent()) spawnLocation = player.getBedPosition().get();
-            else spawnLocation = player.world.getServer().func_241755_D_().getSpawnPoint();
-
-            player.setPositionAndUpdate(spawnLocation.getX(), spawnLocation.getY(), spawnLocation.getZ());
-            ctx.get().setPacketHandled(true);
         }
     }
 }

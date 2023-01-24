@@ -27,8 +27,7 @@ public class DeathReimagined {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    @OnlyIn(Dist.CLIENT)
-    public static final LocalPlayerData LOCAL_DATA = new LocalPlayerData();
+    public static LocalPlayerData LOCAL_DATA;
 
     public static final Item SYRINGE = new ItemSyringe();
 
@@ -51,6 +50,7 @@ public class DeathReimagined {
     }
 
     private void onClientSetup(final FMLClientSetupEvent event) {
+        DeathReimagined.LOCAL_DATA = new LocalPlayerData();
         MinecraftForge.EVENT_BUS.register(new DyingUI());   // Register the UI for rendering
         NetworkManager.RegisterClient();
     }
