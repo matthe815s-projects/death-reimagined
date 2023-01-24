@@ -1,16 +1,13 @@
 package dev.matthe815.deathreimagined;
 
+import dev.matthe815.deathreimagined.api.LocalPlayerData;
 import dev.matthe815.deathreimagined.api.PlayerData;
 import dev.matthe815.deathreimagined.events.Events;
 import dev.matthe815.deathreimagined.gui.DyingUI;
 import dev.matthe815.deathreimagined.items.ItemSyringe;
 import dev.matthe815.deathreimagined.networking.NetworkManager;
-import dev.matthe815.deathreimagined.networking.packets.PlayerDyingStatusPacket;
-import dev.matthe815.deathreimagined.networking.packets.PlayerHelpRespawnPacket;
-import dev.matthe815.deathreimagined.networking.packets.PlayerRespawnPacket;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
@@ -20,8 +17,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,7 +28,7 @@ public class DeathReimagined {
     private static final Logger LOGGER = LogManager.getLogger();
 
     @OnlyIn(Dist.CLIENT)
-    public static final PlayerData LOCAL_DATA = new PlayerData();
+    public static final LocalPlayerData LOCAL_DATA = new LocalPlayerData();
 
     public static final Item SYRINGE = new ItemSyringe();
 

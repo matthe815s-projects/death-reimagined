@@ -12,7 +12,6 @@ import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
-import org.lwjgl.system.windows.MSG;
 
 public class NetworkManager {
     public static final String NETWORK_PROTOCOL = "1";
@@ -43,7 +42,7 @@ public class NetworkManager {
      * @param packet
      */
     @OnlyIn(Dist.CLIENT)
-    public static void SendToServer (MSG packet)
+    public static <MSG> void SendToServer (MSG packet)
     {
         HANDLER.sendToServer(packet);
     }
@@ -55,7 +54,7 @@ public class NetworkManager {
      * @param player
      */
     @OnlyIn(Dist.DEDICATED_SERVER)
-    public static void SendToClient (MSG packet, ServerPlayerEntity player)
+    public static <MSG> void SendToClient (MSG packet, ServerPlayerEntity player)
     {
         HANDLER.sendTo(packet, player.connection.netManager, NetworkDirection.PLAY_TO_SERVER);
     }
@@ -66,7 +65,7 @@ public class NetworkManager {
      * @param packet
      */
     @OnlyIn(Dist.DEDICATED_SERVER)
-    public static void Broadcast (MSG packet)
+    public static <MSG> void Broadcast (MSG packet)
     {
         ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().forEach(serverPlayerEntity -> {
             SendToClient(packet, serverPlayerEntity);
