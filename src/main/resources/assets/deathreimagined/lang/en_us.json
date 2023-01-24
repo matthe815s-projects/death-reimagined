@@ -1,3 +1,7 @@
 {
-  "item.deathreimagined.syringe": "Syringe"
+  "item.deathreimagined.syringe": "Syringe",
+  "deathreimagined.title.dying": "You are dying...",
+  "deathreimagined.body.dying": "Forced respawn after %s seconds.",
+  "deathreimagined.button.respawn": "Respawn",
+  "deathreimagined.button.selfrevive": "Self Revive (%s remaining)"
 }

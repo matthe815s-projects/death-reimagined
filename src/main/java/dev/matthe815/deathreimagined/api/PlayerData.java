@@ -69,10 +69,11 @@ public class PlayerData {
         deathCount = 0;
         deathTimer = 0;
 
+        DeathReimagined.network.sendTo(new PlayerDyingStatusPacket(false, 0), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+
         // Perform the normal death effects if there's no special revive conditions.
         if (atSpawn) {
             respawning = true;
-            DeathReimagined.network.sendTo(new PlayerDyingStatusPacket(false, 0), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
             player.setHealth(0);
         } else {
             player.setHealth(player.getMaxHealth() / 2);

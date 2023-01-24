@@ -1,8 +1,6 @@
 package dev.matthe815.deathreimagined.networking;
 
 import dev.matthe815.deathreimagined.api.PlayerData;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.network.NetworkEvent;
 
