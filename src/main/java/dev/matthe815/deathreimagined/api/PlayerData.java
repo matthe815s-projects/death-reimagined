@@ -1,6 +1,7 @@
 package dev.matthe815.deathreimagined.api;
 
 import dev.matthe815.deathreimagined.DeathReimagined;
+import dev.matthe815.deathreimagined.networking.NetworkManager;
 import dev.matthe815.deathreimagined.networking.packets.PlayerDyingStatusPacket;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -68,7 +69,7 @@ public class PlayerData {
         deathCount = 0;
         deathTimer = 0;
 
-        DeathReimagined.network.sendTo(new PlayerDyingStatusPacket(false, 0), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
+        NetworkManager.SendToClient(new PlayerDyingStatusPacket(false, 0), player);
 
         // Perform the normal death effects if there's no special revive conditions.
         if (atSpawn) {

@@ -1,5 +1,6 @@
 package dev.matthe815.deathreimagined;
 
+import dev.matthe815.deathreimagined.api.PlayerData;
 import dev.matthe815.deathreimagined.events.Events;
 import dev.matthe815.deathreimagined.gui.DyingUI;
 import dev.matthe815.deathreimagined.items.ItemSyringe;
@@ -10,6 +11,8 @@ import dev.matthe815.deathreimagined.networking.packets.PlayerRespawnPacket;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -29,8 +32,8 @@ public class DeathReimagined {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public static boolean isDying = false;
-    public static int dyingTick = 0;
+    @OnlyIn(Dist.CLIENT)
+    public static final PlayerData LOCAL_DATA = new PlayerData();
 
     public static final Item SYRINGE = new ItemSyringe();
 
