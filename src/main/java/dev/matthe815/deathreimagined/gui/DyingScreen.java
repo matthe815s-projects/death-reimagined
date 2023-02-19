@@ -29,8 +29,7 @@ public class DyingScreen extends Screen {
 
         drawCenteredString(matrixStack, this.font, this.title.getString(), this.width / 2, 8, 0XFFFFFF);
         drawCenteredString(
-                matrixStack, this.font, String.format((new TranslationTextComponent("deathreimagined.body.dying")).getString(),
-                        DeathReimagined.LOCAL_DATA.GetTicks() / 40), this.width / 2, 20, 0xFFFFFF);
+                matrixStack, this.font, String.format((new TranslationTextComponent("deathreimagined.body.dying", DeathReimagined.LOCAL_DATA.GetTicks() / 40)).getString()), this.width / 2, 20, 0xFFFFFF);
 
         // Don't allow respawning once you black out.
         if (DeathReimagined.LOCAL_DATA.GetTicks() <= 255) this.buttons.clear();
@@ -53,8 +52,8 @@ public class DyingScreen extends Screen {
         PlayerEntity player = this.getMinecraft().player;
 
         this.addButton(new Button((this.width - 200) / 2, (this.height - 20) / 2, 200, 20,
-                new TranslationTextComponent("dereimagined.button.respawn"), button -> {
-            NetworkManager.SendToServer(new PlayerRespawnPacket());
+                new TranslationTextComponent("deathreimagined.button.respawn"), button -> {
+            NetworkManager.HANDLER.sendToServer(new PlayerRespawnPacket());
             DeathReimagined.LOCAL_DATA.SetTicks(255);
         }));
 
@@ -66,9 +65,9 @@ public class DyingScreen extends Screen {
 
         this.addButton(
                 new Button((this.width - 200) / 2, ((this.height - 20) / 2) + 25, 200, 20,
-                new TranslationTextComponent("dereimagined.button.selfrevive", syringeCount),
+                new TranslationTextComponent("deathreimagined.button.selfrevive", syringeCount),
                         button -> {
-                    NetworkManager.SendToServer(new PlayerRespawnPacket(EnumRespawnType.SELF_REVIVE));
+                    NetworkManager.HANDLER.sendToServer(new PlayerRespawnPacket(EnumRespawnType.SELF_REVIVE));
                 }));
     }
 

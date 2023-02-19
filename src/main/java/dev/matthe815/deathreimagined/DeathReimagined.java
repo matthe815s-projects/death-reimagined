@@ -2,6 +2,7 @@ package dev.matthe815.deathreimagined;
 
 import dev.matthe815.deathreimagined.api.LocalPlayerData;
 import dev.matthe815.deathreimagined.api.PlayerData;
+import dev.matthe815.deathreimagined.config.ConfigHolder;
 import dev.matthe815.deathreimagined.events.Events;
 import dev.matthe815.deathreimagined.gui.DyingUI;
 import dev.matthe815.deathreimagined.items.ItemSyringe;
@@ -13,7 +14,9 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -37,6 +40,8 @@ public class DeathReimagined {
     public static final NetworkManager NETWORK = new NetworkManager();
 
     public DeathReimagined() {
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigHolder.COMMON_SPEC);
+
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onClientSetup);
 

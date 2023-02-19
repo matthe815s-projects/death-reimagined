@@ -3,5 +3,6 @@
   "deathreimagined.title.dying": "You are dying...",
   "deathreimagined.body.dying": "Forced respawn after %s seconds.",
   "deathreimagined.button.respawn": "Respawn",
-  "deathreimagined.button.selfrevive": "Self Revive (%s remaining)"
+  "deathreimagined.button.selfrevive": "Self Revive (%s remaining)",
+  "deathreimagined.message.dying": "%s is dying!"
 }

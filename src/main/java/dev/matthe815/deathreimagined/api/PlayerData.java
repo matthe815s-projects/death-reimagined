@@ -1,6 +1,7 @@
 package dev.matthe815.deathreimagined.api;
 
 import dev.matthe815.deathreimagined.DeathReimagined;
+import dev.matthe815.deathreimagined.config.ConfigHolder;
 import dev.matthe815.deathreimagined.networking.NetworkManager;
 import dev.matthe815.deathreimagined.networking.packets.PlayerDyingStatusPacket;
 import net.minecraft.entity.player.PlayerEntity;
@@ -69,15 +70,17 @@ public class PlayerData {
         deathCount = 0;
         deathTimer = 0;
 
-        NetworkManager.SendToClient(new PlayerDyingStatusPacket(false, 0), player);
+        NetworkManager.HANDLER.sendTo(new PlayerDyingStatusPacket(false, 0), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
 
         // Perform the normal death effects if there's no special revive conditions.
         if (atSpawn) {
             respawning = true;
             player.setHealth(0);
         } else {
-            player.setHealth(player.getMaxHealth() / 2);
-            player.getFoodStats().setFoodLevel(10);
+            player.setHealth(ConfigHolder.COMMON.reviveHealth.get());
+
+            // Restore hunger of the player to half if they get revived with the setting on.
+            if (ConfigHolder.COMMON.restoreHunger.get()) player.getFoodStats().setFoodLevel(10);
         }
     }
 
@@ -88,10 +91,13 @@ public class PlayerData {
         boolean hasLongDelay = player.getServer().getPlayerList().getPlayers().size() > 1
                 || player.inventory.hasItemStack(new ItemStack(DeathReimagined.SYRINGE));
 
-        deathTimer = hasLongDelay ? (2400 / deathCount) : 255;
+        System.out.println(deathTimer);
+
+        deathTimer = hasLongDelay ? 2400 : 255;
+
+        System.out.println(deathTimer);
 
         NetworkManager.HANDLER.sendTo(new PlayerDyingStatusPacket(true, deathTimer), player.connection.netManager, NetworkDirection.PLAY_TO_CLIENT);
-        //NetworkManager.SendToClient(new PlayerDyingStatusPacket(true, deathTimer), player);
     }
 
     public void OnTick () {

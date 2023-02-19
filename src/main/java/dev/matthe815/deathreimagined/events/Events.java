@@ -2,10 +2,12 @@ package dev.matthe815.deathreimagined.events;
 
 import dev.matthe815.deathreimagined.DeathReimagined;
 import dev.matthe815.deathreimagined.api.PlayerData;
+import dev.matthe815.deathreimagined.config.ConfigHolder;
 import dev.matthe815.deathreimagined.networking.NetworkManager;
 import dev.matthe815.deathreimagined.networking.packets.PlayerHelpRespawnPacket;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -43,11 +45,11 @@ public class Events {
         // Only if you right click another player
         if (!(event.getEntity() instanceof PlayerEntity)) return;
 
-        NetworkManager.SendToServer(
+        NetworkManager.HANDLER.sendToServer(
                 new PlayerHelpRespawnPacket((event.getEntity()).getName().getString()));
     }
 
-    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    @SubscribeEvent
     public void onPlayerDeath(LivingDeathEvent event)
     {
         if (event.getEntity().world.isRemote) return; // This should only run on servers
@@ -63,6 +65,11 @@ public class Events {
 
         event.setCanceled(true); // Stop the actual death
         player.setHealth(0.5f); // It won't stop if this isn't set.
+
+        // Whether or not to broadcast messages to the server upon dying.
+        if (ConfigHolder.COMMON.broadcastMessageOnDeath.get()) {
+            player.getServer().sendMessage(new TranslationTextComponent("deathreimagined.messages.dying", player.getName().getString()), null);
+        }
 
         if (PlayerData.GetData(player).IsDying()) return; // We don't want to reset the number while dying.
         PlayerData.GetData(player).OnDeath();
